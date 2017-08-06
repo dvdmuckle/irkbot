@@ -4,88 +4,68 @@ import (
 	"fmt"
 	"github.com/dvdmuckle/irkbot/lib/configure"
 	"github.com/dvdmuckle/irkbot/lib/message"
-	"github.com/nishanths/go-xkcd"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
-	"strconv"
 	"strings"
 )
 
-const apiUrlFmtDefine = "https://relevantxkcd.appspot.com/process?%s"
+const doomHost = "localhost:8000/api/player/actions"
 
-func Helpxkcd() []string {
-	s := "xkcd <search> - find a xkcd comic relevant to the search term"
+func Helpdoom() []string {
+	s := "doom <command> - play doom!"
 	return []string{s}
 }
 
-//Perform the actual GET and return the resulting body as a string
-func get(apiURL string) (string, error) {
-	response, err := http.Get(apiURL)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	bodyString := string(bodyBytes)
-	return bodyString, nil
-}
-
-//Parse the body string for the comic number we want
-func parseString(bodyString string) (string, error) {
-	bodyStrings := strings.Split(bodyString, "\n")
-	if len(bodyStrings) < 3 {
-		return "", fmt.Errorf("error in parsing string: splitting body by line failed")
-	}
-	spacedStrings := strings.Fields(bodyStrings[2])
-	if len(spacedStrings) < 1 {
-		return "", fmt.Errorf("error in parsing string: accessing substring of bodyStrings failed")
-	}
-	return spacedStrings[0], nil
-}
-
-//Method called on xkcd command, named funky so as not to collide with xkcd-go
-func getXKCD(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-	comicMsg := "enter a search term, dipstick"
-	//If no search term, gently remind the user to input one
+//Sanitize input
+func doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
+	doomCommand := "enter a command, dipstick"
 	if len(in.MsgArgs[1:]) == 0 {
-		actions.Say(comicMsg)
+		actions.Say(doomCommand)
 		return
 	}
-	query := url.Values{}
-	query.Add("action", "xkcd")
-	search := strings.Join(in.MsgArgs[1:], " ")
-	query.Add("query", search)
-	apiUrl := fmt.Sprintf(apiUrlFmtDefine, query.Encode())
-	comicString, comicErr := get(apiUrl)
-	if comicErr != nil {
-		fmt.Fprintln(os.Stderr, comicErr)
-		actions.Say("something borked, try again")
+	if in.MsgArgs[1:] == "shoot"|"forward"|"backward"|"left"|"right" {
+		actions.Say("invalid command, comands are: shoot, forward, backward, left, right")
 		return
 	}
-	comicNum, parseErr := parseString(comicString)
-	if parseErr != nil {
-		fmt.Fprintln(os.Stderr, parseErr)
-		actions.Say("something borked, try again")
-		return
+	doomCommand = in.MsgArgs[1:]
+	post(doomCommand)
+}
+
+//Perform actual POST
+func post(doomCommand string) (string, error) {
+	//There has got to be a better way to do this
+	switch doomCommand {
+	case "shoot":
+		body := strings.NewReader(`{"type":"shoot"}`)
+	case "forward":
+		body := strings.NewReader(`{"type":"forward"}`)
+	case "backward":
+		body := strings.NewReader(`{"type":"backward"}`)
+	case "left":
+		body := strings.NewReader(`{"type":"turn-left"}`)
+	case "right":
+		body := strings.NewReader(`{"type":"turn-right"}`)
+	case "open":
+		body := strings.NewReader(`{"type":"open"}`)
+	default:
+		return //This shouldn't actually happen since we sanitize earlier, but just in case
 	}
-	client := xkcd.NewClient()
-	i, strconvErr := strconv.Atoi(comicNum)
-	if strconvErr != nil {
-		fmt.Fprintln(os.Stderr, strconvErr)
-		actions.Say("something borked, try again")
-		return
-	}
-	comicGet, err := client.Get(i)
+	req, err := http.NewRequest("POST", doomHost, body)
 	if err != nil {
+		// handle err
 		fmt.Fprintln(os.Stderr, err)
 		actions.Say("something borked, try again")
 		return
 	}
-	comicMsg = fmt.Sprintf("%s - https://xkcd.com/%s/", comicGet.Title, comicNum)
-	actions.Say(comicMsg)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		// handle err
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("something borked, try again")
+		return
+	}
+	defer resp.Body.Close()
 }
