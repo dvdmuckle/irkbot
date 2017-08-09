@@ -1,10 +1,11 @@
 package module
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/dvdmuckle/irkbot/lib/configure"
 	"github.com/dvdmuckle/irkbot/lib/message"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -24,18 +25,19 @@ func doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say(doomCommand)
 		return
 	}
-	if in.MsgArgs[1:] == "shoot"|"forward"|"backward"|"left"|"right" {
+	if strings.Join(in.MsgArgs[1:], " ") == "shoot" || "forward" || "backward" || "left" || "right" {
 		actions.Say("invalid command, comands are: shoot, forward, backward, left, right")
 		return
 	}
-	doomCommand = in.MsgArgs[1:]
+	doomCommand = strings.Join(in.MsgArgs[1:], " ")
+
 	post(doomCommand)
 }
 
 //Perform actual POST
-func post(doomCommand string) (string, error) {
+func post(doomCommand string, actions *Actions) {
 	//There has got to be a better way to do this
-	switch doomCommand {
+	/*switch doomCommand {
 	case "shoot":
 		body := strings.NewReader(`{"type":"shoot"}`)
 	case "forward":
@@ -50,17 +52,10 @@ func post(doomCommand string) (string, error) {
 		body := strings.NewReader(`{"type":"open"}`)
 	default:
 		return //This shouldn't actually happen since we sanitize earlier, but just in case
-	}
-	req, err := http.NewRequest("POST", doomHost, body)
-	if err != nil {
-		// handle err
-		fmt.Fprintln(os.Stderr, err)
-		actions.Say("something borked, try again")
-		return
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, err := http.DefaultClient.Do(req)
+	}*/
+	values := map[string]string{"type": doomCommand}
+	jsonValue, _ := json.Marshal(values)
+	resp, err := http.Post(doomHost, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		// handle err
 		fmt.Fprintln(os.Stderr, err)
