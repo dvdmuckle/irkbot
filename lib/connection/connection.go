@@ -1,10 +1,12 @@
 package connection
 
 import (
+	"fmt"
 	"github.com/dvdmuckle/irkbot/lib/configure"
 	"github.com/dvdmuckle/irkbot/lib/message"
 	"github.com/dvdmuckle/irkbot/lib/module"
 	"github.com/thoj/go-ircevent"
+	"strconv"
 	"time"
 )
 
@@ -13,6 +15,10 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 	conn.UseTLS = cfg.Server.UseTls
 	conn.VerboseCallbackHandler = cfg.Connection.VerboseCallbackHandler
 	conn.Debug = cfg.Connection.Debug
+	fmt.Printf(strconv.FormatBool(cfg.Server.ServerAuth) + "\n")
+	if cfg.Server.ServerAuth {
+		conn.Password = cfg.Server.ServerPassword
+	}
 
 	conn.AddCallback("001", func(e *irc.Event) {
 		if cfg.User.Identify && conn.GetNick() == cfg.User.Nick {
