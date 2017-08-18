@@ -19,7 +19,7 @@ type Config struct {
 		Port           string `yaml:"port"`
 		UseTls         bool   `yaml:"use_tls"`
 		ServerAuth     bool   `yaml:"server_auth"`
-		ServerPassword string `yaml:"sever_pass"`
+		ServerPassword string `yaml:"server_pass"`
 	} `yaml:"server"`
 	Channel struct {
 		ChannelName string `yaml:"channel_name"`

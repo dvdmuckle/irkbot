@@ -15,6 +15,9 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 	conn.UseTLS = cfg.Server.UseTls
 	conn.VerboseCallbackHandler = cfg.Connection.VerboseCallbackHandler
 	conn.Debug = cfg.Connection.Debug
+	if cfg.Server.ServerAuth {
+		conn.Password = cfg.Server.ServerPassword
+	}
 
 	if cfg.Server.ServerAuth {
 		fmt.Printf(strconv.FormatBool(cfg.Server.ServerAuth))
