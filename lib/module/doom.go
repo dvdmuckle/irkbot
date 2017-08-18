@@ -15,14 +15,17 @@ type doomStruct struct {
 	Type string `json:"type"`
 }
 
-const doomHost = "http://localhost:8000/api/player/actions"
+var doomHost string
+
+func ConfigDoom(cfg *configure.Config) {
+	doomHost = cfg.Modules["doom"]["doom_host"]
+}
 
 func HelpDoom() []string {
 	s := "doom <command> - play doom!"
 	return []string{s}
 }
 
-//Sanitize input
 func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	doomCommand := "enter a command, dipstick"
 	if len(in.MsgArgs[1:]) == 0 {
@@ -43,7 +46,13 @@ func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		return
 	}
 	doomToPost := doomStruct{Type: doomCommand}
-	jsonValue, _ := json.Marshal(doomToPost)
+	jsonValue, err := json.Marshal(doomToPost)
+	if err != nil {
+		// handle err
+		fmt.Fprintln(os.Stderr, err)
+		actions.Say("something borked, try again")
+		return
+	}
 	resp, err := http.Post(doomHost, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		// handle err

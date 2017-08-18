@@ -80,7 +80,7 @@ func RegisterModules(conn *irc.Connection, cfg *configure.Config, outChan chan m
 		case "doing":
 			cmdMap["doing"] = &CommandModule{ConfigDoing, HelpDoing, Doing}
 		case "doom":
-			cmdMap["doom"] = &CommandModule{nil, HelpDoom, Doom}
+			cmdMap["doom"] = &CommandModule{ConfigDoom, HelpDoom, Doom}
 		default:
 			return fmt.Errorf("invalid name '%s' in module config", moduleName)
 		}
