@@ -53,7 +53,7 @@ func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 		actions.Say("something borked, try again")
 		return
 	}
-	resp, err := http.Post(doomHost, "application/json", bytes.NewBuffer(jsonValue))
+	resp, err := http.Post(doomHost, "application/json", bytes.NewReader(jsonValue))
 	if err != nil {
 		// handle err
 		fmt.Fprintln(os.Stderr, err)
