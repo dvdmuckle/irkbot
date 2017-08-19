@@ -1,12 +1,10 @@
 package connection
 
 import (
-	"fmt"
 	"github.com/dvdmuckle/irkbot/lib/configure"
 	"github.com/dvdmuckle/irkbot/lib/message"
 	"github.com/dvdmuckle/irkbot/lib/module"
 	"github.com/thoj/go-ircevent"
-	"strconv"
 	"time"
 )
 
@@ -20,7 +18,6 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 	}
 
 	if cfg.Server.ServerAuth {
-		fmt.Printf(strconv.FormatBool(cfg.Server.ServerAuth))
 		conn.Password = cfg.Server.ServerPassword
 	}
 	conn.AddCallback("001", func(e *irc.Event) {
