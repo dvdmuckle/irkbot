@@ -16,10 +16,6 @@ func GetIrcConn(cfg *configure.Config) (*irc.Connection, error) {
 	if cfg.Server.ServerAuth {
 		conn.Password = cfg.Server.ServerPassword
 	}
-
-	if cfg.Server.ServerAuth {
-		conn.Password = cfg.Server.ServerPassword
-	}
 	conn.AddCallback("001", func(e *irc.Event) {
 		if cfg.User.Identify && conn.GetNick() == cfg.User.Nick {
 			conn.Privmsgf("NickServ", "identify %s", cfg.User.Password)

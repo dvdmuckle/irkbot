@@ -34,8 +34,8 @@ func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
 	}
 	doomCommand := strings.Join(in.MsgArgs[1:], " ")
 	doomValid := false
-	for i := 0; i < 6; i++ {
-		if doomCommand == doomValids[i] {
+	for _, v := range doomValids {
+		if doomCommand == v {
 			doomValid = true
 			break
 		}
