@@ -16,6 +16,7 @@ type doomStruct struct {
 }
 
 var doomHost string
+var doomValids = []string{"shoot", "forward", "backward", "left", "right", "use"}
 
 func ConfigDoom(cfg *configure.Config) {
 	doomHost = cfg.Modules["doom"]["doom_host"]
@@ -27,22 +28,20 @@ func HelpDoom() []string {
 }
 
 func Doom(cfg *configure.Config, in *message.InboundMsg, actions *Actions) {
-	doomCommand := "enter a command, dipstick"
 	if len(in.MsgArgs[1:]) == 0 {
-		actions.Say(doomCommand)
+		actions.Say("enter a command, dipstick")
 		return
 	}
-	//Ugly switch statement to sanitize input because RESTful Doom doesn't
-	doomCommand = strings.Join(in.MsgArgs[1:], " ")
-	switch doomCommand {
-	case "shoot":
-	case "forward":
-	case "backward":
-	case "left":
-	case "right":
-	case "use":
-	default:
-		actions.Say("invalid command, comands are: shoot, forward, backward, left, right, use")
+	doomCommand := strings.Join(in.MsgArgs[1:], " ")
+	doomValid := false
+	for _, v := range doomValids {
+		if doomCommand == v {
+			doomValid = true
+			break
+		}
+	}
+	if !doomValid {
+		actions.Say(fmt.Sprintf("invalid command, commands are "+"%s", strings.Join(doomValids, ", ")))
 		return
 	}
 	doomToPost := doomStruct{Type: doomCommand}
